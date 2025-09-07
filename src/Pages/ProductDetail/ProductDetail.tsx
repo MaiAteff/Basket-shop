@@ -20,6 +20,7 @@ import { User } from "../../Context/UserContext";
 import { isInWishlist } from "../../Apis/isInWishlist";
 import { removeFromWishlist } from "../../Apis/removeFromWishlist";
 import { addToWishlist } from "../../Apis/addToWishlist";
+import { CartItem } from "../../Interfaces/CartItem";
 type ProductDetailProps = {
   showShare: boolean;
   setShare: React.Dispatch<React.SetStateAction<boolean>>;
@@ -45,8 +46,18 @@ export default function ProductDetail({
   let [readMore, setReadMore] = useState(true);
   let { productId } = useParams();
 
-  const cartItem = cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId));
-  const [localQty, setLocalQty] = useState(cartItem?.quantity ?? 1);
+  let cartItem: CartItem|undefined = cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId));
+  let [localQty, setLocalQty] = useState(cartItem?.quantity ?? 1);
+  useEffect(() => {
+    const check = async () => {
+      cartItem = cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId));
+      setLocalQty(cartItem?.quantity ?? 1);
+      const flag = await isInWishlist(userId, (product?.productDetails?.id ?? productId) ?? "", auth);
+      setWishlistId(flag);
+    };
+    check();
+  }, [auth, userId,productId,product?.productDetails?.id]);
+  
   const handleDecrement = () => {
     if (cartItem) {
       // Already in cart → update backend
@@ -72,13 +83,6 @@ export default function ProductDetail({
 
   const [wishlistId, setWishlistId] = useState(null);
 
-  useEffect(() => {
-    const check = async () => {
-      const flag = await isInWishlist(userId, (product?.productDetails?.id ?? productId) ?? "", auth);
-      setWishlistId(flag);
-    };
-    check();
-  }, [auth, userId]);
 
   const toggleWishlist = async () => {
     if (wishlistId) {

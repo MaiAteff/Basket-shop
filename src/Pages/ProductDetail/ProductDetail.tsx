@@ -17,10 +17,9 @@ import NavButton from "../../Components/NavButton/NavButton";
 import RelatedProduct from "../../Components/RelatedProduct/RelatedProduct";
 import { cartContext } from "../../Context/CartContext";
 import { User } from "../../Context/UserContext";
-import { isInWishlist } from "../../Apis/isInWishlist";
-import { removeFromWishlist } from "../../Apis/removeFromWishlist";
-import { addToWishlist } from "../../Apis/addToWishlist";
 import { CartItem } from "../../Interfaces/CartItem";
+import { wishlistContext } from "../../Context/WishlistContext";
+import { WishlistItem } from "../../Interfaces/WishlistItem";
 type ProductDetailProps = {
   showShare: boolean;
   setShare: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,9 +30,10 @@ export default function ProductDetail({
 }: ProductDetailProps) {
   // display product
   let product = useContext(ProductContext);
-  let { addToCart, updateQuantity, cartItems } = useContext(cartContext)!;
   let { auth, userId } = useContext(User)!;
-
+  let { addToCart, updateQuantity, cartItems } = useContext(cartContext)!;
+  let { addToWishlist, removeFromWishlist, wishlistItems } = useContext(wishlistContext)!;
+  
   // loading
   let [isLoading, setLoading] = useState<boolean>(false);
   //related products
@@ -45,18 +45,19 @@ export default function ProductDetail({
   //read more details
   let [readMore, setReadMore] = useState(true);
   let { productId } = useParams();
-
-  let cartItem: CartItem|undefined = cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId));
+  
+  let [cartItem, setCartItem] = useState<CartItem|undefined>(cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId)));
+  let [wishlistItem, setWishlistItem] = useState<WishlistItem|undefined>(wishlistItems.find(wi => wi.products?.id === (product?.productDetails?.id ?? productId)));
   let [localQty, setLocalQty] = useState(cartItem?.quantity ?? 1);
+
   useEffect(() => {
     const check = async () => {
-      cartItem = cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId));
+      setCartItem(cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId)));
+      setWishlistItem(wishlistItems.find(wi => wi.products?.id === (product?.productDetails?.id ?? productId)));
       setLocalQty(cartItem?.quantity ?? 1);
-      const flag = await isInWishlist(userId, (product?.productDetails?.id ?? productId) ?? "", auth);
-      setWishlistId(flag);
     };
     check();
-  }, [auth, userId,productId,product?.productDetails?.id]);
+  }, [productId, product?.productDetails?.id, cartItem, wishlistItems]);
   
   const handleDecrement = () => {
     if (cartItem) {
@@ -80,17 +81,11 @@ export default function ProductDetail({
       addToCart((product?.productDetails?.id ?? productId) ?? "", localQty);
     }
   };
-
-  const [wishlistId, setWishlistId] = useState(null);
-
-
   const toggleWishlist = async () => {
-    if (wishlistId) {
-      await removeFromWishlist(wishlistId, auth);
-      setWishlistId(null);
+    if (wishlistItem) {
+      removeFromWishlist(wishlistItem.id);
     } else {
-      const whishlistId = await addToWishlist((product?.productDetails?.id ?? productId) ?? "", userId, auth)
-      setWishlistId(whishlistId);
+      addToWishlist((product?.productDetails?.id ?? productId) ?? "");
     }
   };
 
@@ -298,7 +293,7 @@ export default function ProductDetail({
                     onClick={toggleWishlist}
                     className="border border-gray-300 h-12 rounded-lg flex justify-center items-center space-x-2 font-semibold text-lg cursor-pointer hover:bg-gray-200 duration-500"
                   >
-                    {wishlistId ? (
+                    {wishlistItem ? (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="22"

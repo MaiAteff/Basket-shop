@@ -18,6 +18,7 @@ import ProductDetail from "./Pages/ProductDetail/ProductDetail";
 import CartContextProvider from "./Context/CartContext";
 import { Toaster } from "react-hot-toast";
 import Checkout from "./Pages/Checkout/Checkout";
+import WishlistContextProvider from "./Context/WishlistContext";
 
 export default function App() {
   let [showShare, setShowShare] = useState<boolean>(false);
@@ -55,9 +56,11 @@ export default function App() {
       <Toaster reverseOrder={false} />
       <UserProvider>
         <CartContextProvider>
-          <ProductProvider>
-            <RouterProvider router={routes}></RouterProvider>
-          </ProductProvider>
+          <WishlistContextProvider>
+            <ProductProvider>
+              <RouterProvider router={routes}></RouterProvider>
+            </ProductProvider>
+          </WishlistContextProvider>
         </CartContextProvider>
       </UserProvider>
     </>

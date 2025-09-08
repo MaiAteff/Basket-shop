@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 import { IOrder } from "../Interfaces/Order";
 import { api } from "../supabaseClient";
+import { CartItem } from "../Interfaces/CartItem";
 
 type Order = {
   id: string;
@@ -14,10 +15,6 @@ export async function addOrder(
 ) {
   try {
     setLoading(true);
-    // if(order.cartItems.some((item) => item.quantity > item.products.quantity)){
-    //   toast.error("Something went wrong");
-    //   return;
-    // }
     const { data } = await api.post<Order[]>(
       "/orders",
       { ...order.orderData, user_id: userId },
@@ -31,6 +28,15 @@ export async function addOrder(
       }
     );
     let orderId = data[0].id;
+    // Adjusting cartItmes
+    const fixedItems = order.cartItems.map((item: CartItem) => {
+      if (item.quantity > item.products.quantity) {
+        toast.error(`${item.products.name} stock reduced. Adjusting cart.`);
+        return { ...item, quantity: item.products.quantity };
+      }
+      return item;
+    });
+    // cartItems it to orderItems
     const orderItems = order.cartItems.map((item) => ({
       order_id: orderId,
       product_id: item.products.id,

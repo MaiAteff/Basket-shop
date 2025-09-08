@@ -28,14 +28,6 @@ export async function addOrder(
       }
     );
     let orderId = data[0].id;
-    // Adjusting cartItmes
-    const fixedItems = order.cartItems.map((item: CartItem) => {
-      if (item.quantity > item.products.quantity) {
-        toast.error(`${item.products.name} stock reduced. Adjusting cart.`);
-        return { ...item, quantity: item.products.quantity };
-      }
-      return item;
-    });
     // cartItems it to orderItems
     const orderItems = order.cartItems.map((item) => ({
       order_id: orderId,

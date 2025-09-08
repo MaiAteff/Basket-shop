@@ -10,4 +10,5 @@ export interface ICartContext {
     totalPrice: number;
     updateQuantity: (itemId: string, newQuantity: number) => void;
     clearCart: () => void;
+    adjustCartItems: (cartItems: CartItem[]) => void;
 }

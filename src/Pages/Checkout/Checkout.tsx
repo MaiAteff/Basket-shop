@@ -17,7 +17,6 @@ export default function Checkout() {
     let {auth, userId} = useContext(User)!;
     let [isLoading, setLoading] = useState<boolean>(false);
     let navigate = useNavigate();
-    // let userId = "f0b225c9-8809-4be4-b1de-ca27184c40a1";
 
     const contactValidation = Yup.string()
         .required("Contact is required")

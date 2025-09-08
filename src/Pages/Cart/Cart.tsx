@@ -1,12 +1,14 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { cartContext } from '../../Context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Cart() {
-  let { cartItems, cartCount, totalPrice, removeFromCart, updateQuantity } = useContext(cartContext)!;
+  let { cartItems, cartCount, totalPrice, removeFromCart, updateQuantity, adjustCartItems } = useContext(cartContext)!;
   const hasOutOfStock = cartItems.some((item) => !item.products.inStock);
   let navigate = useNavigate();
-
+  useEffect(() => {
+    adjustCartItems(cartItems);
+  }, []);
   return (
     <div>
       <div className="relative w-[80%] mx-auto my-5">

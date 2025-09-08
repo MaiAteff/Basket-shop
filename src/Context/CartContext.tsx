@@ -120,19 +120,23 @@ export default function CartContextProvider({ children }: CartProviderProps) {
         },
       });
       // Adjusting cartItmes
-      const fixedItems = cartItems.map((item: CartItem) => {
-        if (item.quantity > item.products.quantity) {
-          toast.error(`${item.products.name} stock reduced. Adjusting cart.`);
-          return { ...item, quantity: item.products.quantity };
-        }
-        return item;
-      });
-      // Update CartItems
-      setCartItems(fixedItems || []);
-      // setCartCount(cartItems?.length ?? 0);
+      adjustCartItems(cartItems);
     } catch (error) {
       console.error("Error fetching cart items:", error);
     }
+  }
+  function adjustCartItems(cartItemsParam?: CartItem[]) {
+    // Adjusting cartItmes
+    const fixedItems = (cartItemsParam ?? cartItems).map((item: CartItem) => {
+      if (item.quantity > item.products.quantity) {
+        toast.error(`${item.products.name} stock reduced. Adjusting cart.`);
+        updateQuantity(item.id, item.products.quantity)
+        return { ...item, quantity: item.products.quantity };
+      }
+      return item;
+    });
+
+    setCartItems(fixedItems || []);
   }
   async function addToCart(productId: string, quantity?: number) {
     if (!userContext.auth) {
@@ -241,6 +245,7 @@ export default function CartContextProvider({ children }: CartProviderProps) {
         removeFromCart,
         updateQuantity,
         clearCart,
+        adjustCartItems,
       }}
     >
       {children}

@@ -240,15 +240,15 @@ export default function ProductDetail({
                   <div className="bg-gray-200  h-10 rounded-md flex justify-center items-center ">
                     {/* counter cart */}
                     <div className="flex justify-evenly items-center w-1/2">
-                      <i
+                      <button
                         onClick={handleDecrement}
-                        className="fa-solid fa-minus cursor-pointer"
-                      ></i>
+                        className="fa-solid fa-minus cursor-pointer disabled:cursor-not-allowed"
+                      ></button>
                       <p className="text-xl">{localQty}</p>
-                      <i
-                        onClick={handleIncrement}
-                        className="fa-solid fa-plus cursor-pointer"
-                      ></i>
+                      <button
+                        onClick={handleIncrement} disabled={localQty >= product.productDetails.quantity}
+                        className="fa-solid fa-plus cursor-pointer disabled:cursor-not-allowed"
+                      ></button>
                     </div>
                   </div>
                 }

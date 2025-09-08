@@ -1,7 +1,7 @@
+import { product } from './../Interfaces/IproductCard';
 import toast from "react-hot-toast";
 import { IOrder } from "../Interfaces/Order";
 import { api } from "../supabaseClient";
-import { CartItem } from "../Interfaces/CartItem";
 
 type Order = {
   id: string;
@@ -37,7 +37,40 @@ export async function addOrder(
         item.products.price *
         (1 - item?.products?.discountPercentage / 100)
       ).toFixed(2),
-    }));
+    }
+    ));
+
+    
+    for (const item of order.cartItems) {
+      const { data: products } = await api.get<product[]>("/products", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { id: `eq.${item.products.id}`, select: "quantity" },
+      });
+      // console.log(products);
+      const newQuantity = products?.[0].quantity - item.quantity;
+      console.log(newQuantity);
+      
+      if (newQuantity < 0) {
+        toast.error(`${item.products.name || "Product"} is out of stock`);
+        continue; // skip this item
+      }
+      // console.log(item.products.id);
+      
+      const { data, status } = await api.patch(
+        "/products",
+        { quantity: newQuantity, inStock: newQuantity > 0 },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          params: { id: `eq.${item.products.id}` },
+        }
+      );
+      
+    }
 
     await api.post("/orderItems", orderItems, {
       headers: {

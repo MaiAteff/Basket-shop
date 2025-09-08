@@ -88,10 +88,12 @@ export default function ProductCard({ product, addProductToCart, updateQuantity 
                 <button onClick={(e) => {
                   e.stopPropagation(); 
                   updateQuantity(cartItem.id, cartItem.quantity - 1)}} className="w-8 h-8 border border-main rounded-full text-main">-</button>
-                <span className="min-w-[32px] text-center text-sm text-gray-700">{cartItem.quantity}</span>
-                <button onClick={(e) => {
+                <span className="min-w-[32px] text-center text-sm text-gray-700 ">{cartItem.quantity}</span>
+                <button disabled={product.quantity <= cartItem.quantity} onClick={(e) => {
                   e.stopPropagation(); 
-                  updateQuantity(cartItem.id, cartItem.quantity + 1)}} className="w-8 h-8 border border-main rounded-full text-main">+</button>
+                  updateQuantity(cartItem.id, cartItem.quantity + 1)}} 
+                  className="w-8 h-8 border border-main rounded-full text-main disabled:text-gray-400 disabled:border-gray-300 disabled:cursor-not-allowed"
+                  >+</button>
               </div>
             ) : (
               // Show Add to Cart button if product not in cart

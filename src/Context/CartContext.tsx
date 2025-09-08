@@ -90,9 +90,6 @@ export default function CartContextProvider({ children }: CartProviderProps) {
 
   useEffect(() => {
     setTotalPrice(calculateTotalPrice(cartItems));
-  }, [cartItems]);
-
-  useEffect(() => {
     setCartCount(cartItems.length);
   }, [cartItems]);
 
@@ -216,7 +213,6 @@ export default function CartContextProvider({ children }: CartProviderProps) {
           { quantity: newQuantity },
           {
             headers: {
-
               Authorization: `Bearer ${userContext.auth}`,
             },
             params: { id: `eq.${itemId}` }, // update where id = itemId

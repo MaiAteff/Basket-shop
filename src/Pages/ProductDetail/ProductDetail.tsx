@@ -57,7 +57,7 @@ export default function ProductDetail({
       setLocalQty(cartItem?.quantity ?? 1);
     };
     check();
-  }, [productId, product?.productDetails?.id, cartItem, wishlistItems]);
+  }, [productId, product?.productDetails?.id, cartItems, wishlistItems]);
 
   const handleDecrement = () => {
     if (cartItem) {

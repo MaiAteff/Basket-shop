@@ -5,6 +5,7 @@ import {
   SetStateAction,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { api, supabase } from "../supabaseClient";
@@ -31,7 +32,7 @@ export default function CartContextProvider({ children }: CartProviderProps) {
   const [cartId, setCartId] = useState<string>("");
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const userContext = useContext(User)!;
-
+  const initRef = useRef(false);
   // ensure cart exists
   useEffect(() => {
     const initUserCart = async () => {
@@ -41,7 +42,6 @@ export default function CartContextProvider({ children }: CartProviderProps) {
         setCartCount(0);
         return;
       }
-
       try {
         // Fetch existing cart
         const { data: carts } = await api.get<Cart[]>("/carts", {
@@ -91,6 +91,11 @@ export default function CartContextProvider({ children }: CartProviderProps) {
   useEffect(() => {
     setTotalPrice(calculateTotalPrice(cartItems));
   }, [cartItems]);
+
+  useEffect(() => {
+    setCartCount(cartItems.length);
+  }, [cartItems]);
+
   function calculateTotalPrice(items: CartItem[]) {
     return items.reduce((sum, item) => {
       const priceAfterDiscount =
@@ -110,18 +115,23 @@ export default function CartContextProvider({ children }: CartProviderProps) {
         },
         params: {
           select:
-            "id,quantity, products(id, name, price, discountPercentage, images)",
+            "id,quantity, products(*)",
           cart_id: `eq.${cartIdParam ?? cartId}`,
         },
       });
-
-      // Update CartItems, CartCount
-      setCartItems(cartItems || []);
-      setCartCount(cartItems?.length ?? 0);
-      return cartItems;
+      // Adjusting cartItmes
+      const fixedItems = cartItems.map((item: CartItem) => {
+        if (item.quantity > item.products.quantity) {
+          toast.error(`${item.products.name} stock reduced. Adjusting cart.`);
+          return { ...item, quantity: item.products.quantity };
+        }
+        return item;
+      });
+      // Update CartItems
+      setCartItems(fixedItems || []);
+      // setCartCount(cartItems?.length ?? 0);
     } catch (error) {
       console.error("Error fetching cart items:", error);
-      return [];
     }
   }
   async function addToCart(productId: string, quantity?: number) {
@@ -130,24 +140,26 @@ export default function CartContextProvider({ children }: CartProviderProps) {
       return;
     }
     try {
-      const { data: newItem } = await api.post<CartItem[]>(
-        "/cartItems",
-        { cart_id: cartId, product_id: productId, quantity: quantity ?? 1 },
+      const { data } = await api.post<CartItem[]>(
+        "/rpc/add_to_cart",
+        { p_cart_id: cartId, p_product_id: productId, p_quantity: quantity ?? 1 },
         {
           headers: {
             Authorization: `Bearer ${userContext.auth}`,
-            Prefer: "return=representation,resolution=merge-duplicates",
-          },
-          params: {
-            select:
-              "id,quantity, products(id, name, price, discountPercentage, images)",
+            "Content-Type": "application/json",
           },
         }
       );
+      // console.log(data);
+      const newItem = data[0];
+      setCartItems((prev) => {
+        // replace if exists, otherwise append
+        const exists = prev.find((item) => item.id === newItem.id);
+        return exists
+          ? prev.map((i) => (i.id === newItem.id ? newItem : i))
+          : [...prev, newItem];
+      });
       toast.success("Product added successfully");
-      // Update CartItems, CartCount
-      setCartItems((prev) => [...prev, newItem[0]]);
-      setCartCount((prev) => prev + 1);
     } catch (error) {
       toast.error("Faild");
     }
@@ -162,9 +174,8 @@ export default function CartContextProvider({ children }: CartProviderProps) {
         params: { id: `eq.${itemId}` },
       });
       toast.success("Product removed successfully");
-      // Update CartItems, CartCount
+      // Update CartItems
       setCartItems((prev) => prev.filter((cartItem) => cartItem.id !== itemId));
-      setCartCount((prev) => prev - 1);
     } catch (error) {
       toast.error("Faild");
     }
@@ -184,7 +195,6 @@ export default function CartContextProvider({ children }: CartProviderProps) {
       if (status === 200 || status === 204) {
         // Update state only if deletion succeeded
         setCartItems([]);
-        setCartCount(0);
       }
     } catch (error) {
       console.error("Failed to clear cart:", error);

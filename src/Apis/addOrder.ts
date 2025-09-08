@@ -14,6 +14,10 @@ export async function addOrder(
 ) {
   try {
     setLoading(true);
+    // if(order.cartItems.some((item) => item.quantity > item.products.quantity)){
+    //   toast.error("Something went wrong");
+    //   return;
+    // }
     const { data } = await api.post<Order[]>(
       "/orders",
       { ...order.orderData, user_id: userId },

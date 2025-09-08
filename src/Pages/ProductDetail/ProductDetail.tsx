@@ -33,7 +33,7 @@ export default function ProductDetail({
   let { auth, userId } = useContext(User)!;
   let { addToCart, updateQuantity, cartItems } = useContext(cartContext)!;
   let { addToWishlist, removeFromWishlist, wishlistItems } = useContext(wishlistContext)!;
-  
+
   // loading
   let [isLoading, setLoading] = useState<boolean>(false);
   //related products
@@ -45,9 +45,9 @@ export default function ProductDetail({
   //read more details
   let [readMore, setReadMore] = useState(true);
   let { productId } = useParams();
-  
-  let [cartItem, setCartItem] = useState<CartItem|undefined>(cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId)));
-  let [wishlistItem, setWishlistItem] = useState<WishlistItem|undefined>(wishlistItems.find(wi => wi.products?.id === (product?.productDetails?.id ?? productId)));
+
+  let [cartItem, setCartItem] = useState<CartItem | undefined>(cartItems.find(ci => ci.products.id === (product?.productDetails?.id ?? productId)));
+  let [wishlistItem, setWishlistItem] = useState<WishlistItem | undefined>(wishlistItems.find(wi => wi.products?.id === (product?.productDetails?.id ?? productId)));
   let [localQty, setLocalQty] = useState(cartItem?.quantity ?? 1);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function ProductDetail({
     };
     check();
   }, [productId, product?.productDetails?.id, cartItem, wishlistItems]);
-  
+
   const handleDecrement = () => {
     if (cartItem) {
       // Already in cart → update backend
@@ -220,11 +220,11 @@ export default function ProductDetail({
                     $
                     {product?.productDetails
                       ? (
-                          product?.productDetails?.price -
-                          (product?.productDetails?.price *
-                            product?.productDetails?.discountPercentage) /
-                            100
-                        ).toFixed(2)
+                        product?.productDetails?.price -
+                        (product?.productDetails?.price *
+                          product?.productDetails?.discountPercentage) /
+                        100
+                      ).toFixed(2)
                       : ""}
                   </h3>
                 </div>
@@ -236,20 +236,22 @@ export default function ProductDetail({
                   </p>
                 )}
                 {/* cart */}
-                <div className="bg-gray-200  h-10 rounded-md flex justify-center items-center ">
-                  {/* counter cart */}
-                  <div className="flex justify-evenly items-center w-1/2">
-                    <i
-                      onClick={handleDecrement}
-                      className="fa-solid fa-minus cursor-pointer"
-                    ></i>
-                    <p className="text-xl">{localQty}</p>
-                    <i
-                      onClick={handleIncrement}
-                      className="fa-solid fa-plus cursor-pointer"
-                    ></i>
+                {product?.productDetails?.inStock &&
+                  <div className="bg-gray-200  h-10 rounded-md flex justify-center items-center ">
+                    {/* counter cart */}
+                    <div className="flex justify-evenly items-center w-1/2">
+                      <i
+                        onClick={handleDecrement}
+                        className="fa-solid fa-minus cursor-pointer"
+                      ></i>
+                      <p className="text-xl">{localQty}</p>
+                      <i
+                        onClick={handleIncrement}
+                        className="fa-solid fa-plus cursor-pointer"
+                      ></i>
+                    </div>
                   </div>
-                </div>
+                }
 
                 {/* // Show Add to Cart button if product not in cart */}
                 <button
@@ -275,7 +277,6 @@ export default function ProductDetail({
                   </svg>
                   <h3 className="font-semibold"> Add To Cart</h3>
                 </button>
-                {/* )} */}
 
                 <button
                   onClick={() => {
